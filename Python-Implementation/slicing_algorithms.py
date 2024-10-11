@@ -286,7 +286,7 @@ algorithms = {
     'Resource Reservation': resource_reservation,
     #!'Utility-Based': utility_based_allocation,
     'Dynamic Adaptive': dynamic_adaptive_allocation,
-    'Adams Algo': NoStarvation_priority_roundRHybrid_allocation
+    'Hybrid Dynamic Algorithm': NoStarvation_priority_roundRHybrid_allocation
 }
 
 # List of metrics to plot:
