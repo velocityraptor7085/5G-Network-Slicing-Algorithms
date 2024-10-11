@@ -93,7 +93,46 @@ def dynamic_adaptive_allocation(applications, total_bandwidth):
         app.allocated_bandwidth = min(real_time_bandwidth, total_bandwidth)
         total_bandwidth -= app.allocated_bandwidth
 
+#*11. Adam's Algo:
+def NoStarvation_priority_roundRHybrid_allocation(applications, total_bandwidth):
+    total_bandwidth_remaining = total_bandwidth
+    delay_since_last_allocated = [app.delay_tolerance for app in applications]
 
+    for time in range(100):  # Simulation over time (e.g., 100 time slots)
+        ctr = 0.6
+        Increment = 1 / (len(applications) * 2)
+        i = 0
+
+        for app in applications:
+            if total_bandwidth_remaining == 0:
+                # Adjust priorities for unmet SLAs
+                for j in applications:
+                    if j.allocated_bandwidth == 0:
+                        j.qos_class = min(2 + j.qos_class, 12)  # Increment priority for starvation cases
+                break
+
+            real_time_bandwidth = random.uniform(app.min_bandwidth, app.max_bandwidth)
+
+            # Ensure slice gets at least its minimum bandwidth for SLA satisfaction
+            if real_time_bandwidth > total_bandwidth_remaining:
+                app.allocated_bandwidth = min(app.min_bandwidth, total_bandwidth_remaining)
+            else:
+                app.allocated_bandwidth = min(real_time_bandwidth, total_bandwidth_remaining)
+
+            total_bandwidth_remaining -= app.allocated_bandwidth
+
+            # Increment priority for slices close to delay expiration
+            if delay_since_last_allocated[i] / app.delay_tolerance < 0.3:
+                ctr = 1  # Boost priority if nearing delay tolerance threshold
+
+            if app.allocated_bandwidth < real_time_bandwidth:
+                delay_since_last_allocated[i] -= 1  # Reduce delay tolerance as it waits longer
+                app.qos_class = min(2 + app.qos_class, 12)  # Increase QoS to avoid starvation
+
+            i += 1
+
+        # Sort applications by QoS class for the next round
+        applications.sort(key=lambda x: x.qos_class, reverse=True)
 
 # Performance Metrics
 
@@ -245,8 +284,9 @@ algorithms = {
     'First-Come First-Served': first_come_first_served,
     'Latency-Aware': latency_aware_allocation,
     'Resource Reservation': resource_reservation,
-    'Utility-Based': utility_based_allocation,
-    'Dynamic Adaptive': dynamic_adaptive_allocation
+    #!'Utility-Based': utility_based_allocation,
+    'Dynamic Adaptive': dynamic_adaptive_allocation,
+    'Adams Algo': NoStarvation_priority_roundRHybrid_allocation
 }
 
 # List of metrics to plot:
@@ -254,13 +294,21 @@ metric_names = ["utilization", "fairness", "sla_satisfaction", "delay_satisfacti
                 "over_provisioning", "under_provisioning", "allocation_variance", 
                 "max_allocation_ratio", "client_saturation", "weighted_efficiency"]
 
+from itertools import cycle
 # Function to plot all algorithms on one graph for each metric:
 def plot_all_algorithms_on_one_graph(metrics_dict, num_apps_list):
     for metric in metric_names:
         plt.figure(figsize=(10, 6))
+
+        #! Use a colormap with more than 10 colors, like 'tab20'
+        #!colors = plt.get_cmap('tab20').colors  # tab20 has 20 colors
+        #!color_cycle = cycle(colors)  # Create a cycle from the colormap
+
         for alg_name, metrics in metrics_dict.items():
             metric_values = [m[metric] for m in metrics]
+            #!plt.plot(num_apps_list, metric_values, label=alg_name, color=next(color_cycle), marker='o')
             plt.plot(num_apps_list, metric_values, label=alg_name, marker='o')
+
 
         plt.xlabel("Number of Applications")
         plt.ylabel(metric.replace('_', ' ').title())
