@@ -93,7 +93,7 @@ def dynamic_adaptive_allocation(applications, total_bandwidth):
         app.allocated_bandwidth = min(real_time_bandwidth, total_bandwidth)
         total_bandwidth -= app.allocated_bandwidth
 
-#*11. Adam's Algo:
+#*11. Hybrid Dynamic Algo:
 def NoStarvation_priority_roundRHybrid_allocation(applications, total_bandwidth):
     total_bandwidth_remaining = total_bandwidth
     delay_since_last_allocated = [app.delay_tolerance for app in applications]
@@ -286,7 +286,7 @@ algorithms = {
     'Resource Reservation': resource_reservation,
     #!'Utility-Based': utility_based_allocation,
     'Dynamic Adaptive': dynamic_adaptive_allocation,
-    'Hybrid Dynamic Algorithm': NoStarvation_priority_roundRHybrid_allocation
+    'Hybrid Dynamic': NoStarvation_priority_roundRHybrid_allocation
 }
 
 # List of metrics to plot:
